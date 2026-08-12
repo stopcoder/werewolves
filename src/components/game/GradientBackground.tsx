@@ -10,31 +10,34 @@ interface Props {
 
 /**
  * Full-screen purple→indigo gradient with two soft decorative orbs. Used as
- * the root backdrop on every in-game screen — matches the reference repo's
- * mystery atmosphere.
+ * the root backdrop on every in-game screen.
  *
- * IMPORTANT: the orbs and the gradient layer are absolutely-positioned and
- * would otherwise swallow clicks on any buttons rendered beneath them. We
- * mark them `pointerEvents="none"` so React Native Web lets the events pass
- * through to the interactive content.
+ * Three layers stacked via explicit z-index:
+ *   z=0  gradient + orbs  (backdrop, marked pointerEvents="none")
+ *   z=1  content wrapper  (interactive children live here)
+ *
+ * The z-index is explicit because iOS Safari can otherwise place absolutely
+ * -positioned siblings above static-positioned ones, even when the static
+ * sibling comes later in DOM order. Belt-and-suspenders alongside the
+ * `pointerEvents="none"` props and the `touch-action: manipulation` reset
+ * in global.css.
  */
 export function GradientBackground({ children, style }: Props) {
   return (
     <View style={styles.root}>
-      <LinearGradient
-        colors={[GameTheme.bg.top, GameTheme.bg.mid, GameTheme.bg.bottom]}
-        locations={[0, 0.55, 1]}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
-      <View
-        pointerEvents="none"
-        style={[styles.orbGold, { backgroundColor: GameTheme.accent.gold }]}
-      />
-      <View
-        pointerEvents="none"
-        style={[styles.orbPurple, { backgroundColor: GameTheme.accent.purple }]}
-      />
+      <View pointerEvents="none" style={styles.backdrop}>
+        <LinearGradient
+          colors={[GameTheme.bg.top, GameTheme.bg.mid, GameTheme.bg.bottom]}
+          locations={[0, 0.55, 1]}
+          style={StyleSheet.absoluteFill}
+        />
+        <View
+          style={[styles.orbGold, { backgroundColor: GameTheme.accent.gold }]}
+        />
+        <View
+          style={[styles.orbPurple, { backgroundColor: GameTheme.accent.purple }]}
+        />
+      </View>
       <View style={[styles.container, style]}>{children}</View>
     </View>
   );
@@ -42,7 +45,11 @@ export function GradientBackground({ children, style }: Props) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: GameTheme.bg.bottom },
-  container: { flex: 1 },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
+  },
+  container: { flex: 1, zIndex: 1 },
   orbGold: {
     position: "absolute",
     top: -80,
