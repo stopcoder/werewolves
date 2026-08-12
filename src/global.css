@@ -1,35 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /*
  * Web-only resets so the app feels like a full-screen game on desktop browsers.
  * Native builds ignore this file.
  *
- * IMPORTANT: React Native Web sets `touch-action: none` on the root view,
- * which on iOS Safari (and some Android browsers) silently breaks click /
- * tap events — buttons appear unresponsive even though `onPress` fires.
- * The Expo template's reset doesn't override it; we have to. Override with
- * `manipulation` so the browser still gets gestures (zoom, scroll) but
- * click events fire normally.
+ * Note: this project does not pull in Tailwind. The actual touch-action /
+ * tap-highlight overrides live in `app/_layout.tsx` because they must run
+ * unconditionally before RNW renders the root — applying them via JS to
+ * document.documentElement guarantees they reach iOS Safari.
  */
-html,
-body,
-#root {
-  height: 100%;
-  margin: 0;
-  background-color: #0f0524;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  touch-action: manipulation;
-  /* Disable iOS callout / tap highlight so the UI feels like a real app. */
-  -webkit-touch-callout: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-body {
-  overflow: hidden;
-}
