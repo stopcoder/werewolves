@@ -12,6 +12,11 @@ interface Props {
  * Full-screen purple→indigo gradient with two soft decorative orbs. Used as
  * the root backdrop on every in-game screen — matches the reference repo's
  * mystery atmosphere.
+ *
+ * IMPORTANT: the orbs and the gradient layer are absolutely-positioned and
+ * would otherwise swallow clicks on any buttons rendered beneath them. We
+ * mark them `pointerEvents="none"` so React Native Web lets the events pass
+ * through to the interactive content.
  */
 export function GradientBackground({ children, style }: Props) {
   return (
@@ -20,9 +25,16 @@ export function GradientBackground({ children, style }: Props) {
         colors={[GameTheme.bg.top, GameTheme.bg.mid, GameTheme.bg.bottom]}
         locations={[0, 0.55, 1]}
         style={StyleSheet.absoluteFill}
+        pointerEvents="none"
       />
-      <View style={[styles.orbGold, { backgroundColor: GameTheme.accent.gold }]} />
-      <View style={[styles.orbPurple, { backgroundColor: GameTheme.accent.purple }]} />
+      <View
+        pointerEvents="none"
+        style={[styles.orbGold, { backgroundColor: GameTheme.accent.gold }]}
+      />
+      <View
+        pointerEvents="none"
+        style={[styles.orbPurple, { backgroundColor: GameTheme.accent.purple }]}
+      />
       <View style={[styles.container, style]}>{children}</View>
     </View>
   );
