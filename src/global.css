@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Web-only resets so the app feels like a full-screen game on desktop browsers.
+ * Native builds ignore this file.
+ */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background-color: #0f0524;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  overflow: hidden;
+}
