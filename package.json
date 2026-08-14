@@ -8,6 +8,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "build:web": "expo export --platform web --output-dir dist && node ./scripts/prefix-basepath.js",
+    "deploy:web": "npm run build:web && gh-pages -d dist --branch gh-pages --message 'Rebuild static export'",
     "lint": "expo lint"
   },
   "dependencies": {
