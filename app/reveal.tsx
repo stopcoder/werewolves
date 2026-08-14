@@ -72,16 +72,16 @@ export default function RevealScreen() {
               <RoleCard role={player.role} reveal />
               <View style={styles.cta}>
                 <PrimaryButton
-                  label={isLast ? "BEGIN DAY · START" : "GOT IT · PASS"}
+                  label={isLast ? "GOT IT · PASS TO HOST" : "GOT IT · PASS"}
                   onPress={() => {
                     setShowRole(false);
                     confirmReveal();
-                    if (isLast) router.replace("/day");
+                    if (isLast) router.replace("/host-handoff");
                   }}
                 />
                 <Text style={styles.tip}>
                   {isLast
-                    ? "Discussion starts now."
+                    ? "Now hand the phone to the host."
                     : "Pass the phone to the next player."}
                 </Text>
                 <Text style={styles.roleHint}>

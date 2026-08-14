@@ -21,7 +21,6 @@ import {
 import { useGame } from "@/state/GameContext";
 
 const PLAYER_OPTIONS = [5, 6, 7, 8, 9, 10];
-const TIMER_OPTIONS = [60, 90, 120, 180];
 
 export default function LobbyScreen() {
   const router = useRouter();
@@ -29,8 +28,6 @@ export default function LobbyScreen() {
     playerCount,
     setPlayerCount,
     composition,
-    discussionSeconds,
-    setDiscussionSeconds,
     startGame,
     reset,
   } = useGame();
@@ -65,19 +62,6 @@ export default function LobbyScreen() {
             </ChipRow>
           </Section>
 
-          <Section title="DISCUSSION TIMER · REDEZEIT (sec)">
-            <ChipRow>
-              {TIMER_OPTIONS.map((n) => (
-                <Chip
-                  key={n}
-                  label={`${n}s`}
-                  active={discussionSeconds === n}
-                  onPress={() => setDiscussionSeconds(n)}
-                />
-              ))}
-            </ChipRow>
-          </Section>
-
           <Section title="ROLES · ROLLEN">
             <CompositionReadout
               playerCount={playerCount}
@@ -88,8 +72,8 @@ export default function LobbyScreen() {
           <View style={styles.cta}>
             <PrimaryButton label="BEGIN · START" onPress={handleStart} />
             <Text style={styles.tip}>
-              Pass the phone between players. Each will see their role in
-              private.
+              Pass the phone between players to reveal roles, then the host
+              takes over.
             </Text>
           </View>
 

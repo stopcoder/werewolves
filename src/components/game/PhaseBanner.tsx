@@ -3,8 +3,8 @@ import { StyleSheet, Text, View } from "react-native";
 import { FontSizes, GameSpacing, GameTheme } from "@/constants/gameTheme";
 
 interface Props {
-  /** "day" or "night" — drives the banner's accent. */
-  variant: "day" | "night";
+  /** "day" / "night" drive the accent; "info" for neutral host-mode banners. */
+  variant: "day" | "night" | "info";
   title: string;
   subtitle?: string;
 }
@@ -15,15 +15,28 @@ interface Props {
  */
 export function PhaseBanner({ variant, title, subtitle }: Props) {
   const isNight = variant === "night";
-  const accent = isNight ? GameTheme.accent.night : GameTheme.accent.day;
-  const label = isNight ? "NIGHT · NACHT" : "DAY · TAG";
+  const isInfo = variant === "info";
+  const accent = isNight
+    ? GameTheme.accent.night
+    : isInfo
+      ? GameTheme.text.gold
+      : GameTheme.accent.day;
+  const label = isNight ? "NIGHT · NACHT" : isInfo ? "HOST" : "DAY · TAG";
   return (
     <View
       style={[
         styles.banner,
         {
-          borderColor: isNight ? GameTheme.card.nightBorder : GameTheme.card.dayBorder,
-          backgroundColor: isNight ? GameTheme.card.night : GameTheme.card.day,
+          borderColor: isNight
+            ? GameTheme.card.nightBorder
+            : isInfo
+              ? GameTheme.card.border
+              : GameTheme.card.dayBorder,
+          backgroundColor: isNight
+            ? GameTheme.card.night
+            : isInfo
+              ? GameTheme.card.base
+              : GameTheme.card.day,
         },
       ]}
     >

@@ -15,7 +15,7 @@ import { useGame } from "@/state/GameContext";
 
 export default function GameOverScreen() {
   const router = useRouter();
-  const { winner, players, round, reset } = useGame();
+  const { winner, players, alive, reset } = useGame();
 
   // Out-of-band guard: if we land here without a winner, send to lobby.
   useEffect(() => {
@@ -55,7 +55,9 @@ export default function GameOverScreen() {
                 ? "Every wolf has been silenced."
                 : "Darkness swallows the village."}
             </Text>
-            <Text style={styles.round}>after round {round}</Text>
+            <Text style={styles.round}>
+              {alive().length} player{alive().length === 1 ? "" : "s"} remain
+            </Text>
           </View>
 
           <View style={styles.revealBlock}>
