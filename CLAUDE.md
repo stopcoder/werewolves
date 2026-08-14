@@ -4,30 +4,44 @@ Pass-and-play Werewolf game built on Expo SDK 54 (React Native Web for the brows
 
 ## Web deployment to GitHub Pages
 
-The site is served from a **subpath** (`https://<owner>.github.io/werewolves/`), not the domain root. This bites you out of the box: `experiments.basePath` in `app.json` does **not** rewrite the generated HTML's `<script src>` during `expo export` (SDK 54 limitation). Result: bundle 404s, JS never hydrates, every `Pressable` looks fine but does nothing — no `onPress` fires because no handlers are ever attached.
-
-Symptom checklist (use to confirm this is the bug before chasing z-index or `pointerEvents`):
-
-1. Page renders visually (HTML + CSS shipped fine).
-2. Browser console shows `404` on `https://<owner>.github.io/_expo/static/js/web/entry-*.js`.
-3. Fetching the same path **with** the project subpath returns 200.
-4. No modal, overlay, or backdrop with non-`pointerEvents="none"` (verified — `GradientBackground` is correct).
-5. All `Pressable` components (`PrimaryButton`, `Chip`, `PlayerAvatar`) are wired normally.
-
-Fix lives in `scripts/prefix-basepath.js` (post-export script that prepends `/werewolves` to absolute-path asset URLs in every generated HTML file) plus `package.json`:
+Site lives at `https://stopcoder.github.io/werewolves/` (a subpath of the domain). The key config is **`experiments.baseUrl`** (NOT `basePath`) in `app.json`:
 
 ```jsonc
-"build:web": "expo export --platform web --output-dir dist && node ./scripts/prefix-basepath.js",
-"deploy:web": "npm run build:web && gh-pages -d dist --branch gh-pages --message 'Rebuild static export'"
+"experiments": {
+  "typedRoutes": true,
+  "baseUrl": "/werewolves"
+}
 ```
 
-The script is idempotent — skips URLs already prefixed. Basepath is hardcoded `/werewolves` (matches `app.json` `experiments.basePath`); override via `EXPO_BASE_PATH` env var if you fork this for a different repo name.
+With `baseUrl` set, `expo export --platform web` natively emits all `<script src>`, image URLs, and bundle-internal `require()` URIs prefixed with `/werewolves/`. No post-export patching required.
 
-If you change the GitHub repo name, update **both** `app.json` (`experiments.basePath`) and `scripts/prefix-basepath.js` (default + the README/deploy URL).
+### Symptom of getting this wrong (commit `192a38e` used `basePath`)
+
+The wrong key silently fails:
+
+- Static export emits absolute-path asset URLs at root (`/_expo/...`) instead of subpath-prefixed.
+- Bundle 404s → JS never hydrates → page renders as static HTML shell only → buttons visually present but `onPress` never fires (no event handlers attached because no React mounted).
+- Once you fix the asset paths but the runtime router still doesn't know about the basePath, you get "Unmatched Route" on every page (router thinks `/werewolves/` doesn't match the root route `/`).
+
+### Deploy flow
+
+```bash
+npm run deploy:web
+```
+
+Runs `scripts/deploy.sh`:
+1. `expo export --platform web` → `dist/`
+2. Copies `dist/index.html` to `dist/404.html` (SPA fallback so deep links like `/werewolves/reveal` work — GitHub Pages serves `404.html` for unknown paths, then the client router resolves).
+3. `touch dist/.nojekyll` (opt out of Jekyll so `_expo/` assets aren't filtered).
+4. Force-push `dist/` contents to the `gh-pages` branch.
+
+### Reference implementation
+
+The companion project `who-lies` (`/Users/D051016/SAPDevelop/who-lies`) uses the same pattern correctly. Its `scripts/deploy.sh` adds PWA icon generation and meta-tag injection — pull those in here if PWA support is needed later.
 
 ## iOS Safari tap handling
 
-RNW sets `touch-action: none` on the root, which silently swallows tap events on `Pressable` in iOS Safari. Override applied at runtime in `app/_layout.tsx` (web-only `useEffect`) — sets `touchAction: "manipulation"` on `documentElement` + `body`, plus `webkitTapHighlightColor: "transparent"` and `webkitTouchCallout: "none"`. Do **not** move this back to CSS — Tailwind removed from the project, and the JS path is the one that actually reaches iOS Safari.
+RNW sets `touch-action: none` on the root, which silently swallows tap events on `Pressable` in iOS Safari. Override applied at runtime in `app/_layout.tsx` (web-only `useEffect`) — sets `touchAction: "manipulation"` on `documentElement` + `body`, plus `webkitTapHighlightColor: "transparent"` and `webkitTouchCallout: "none"`. Do **not** move this back to CSS — the JS path is the one that actually reaches iOS Safari.
 
 ## Native parity
 
@@ -36,13 +50,15 @@ The `_layout.tsx` effect also blocks `contextmenu` and `selectstart` globally on
 ## Build commands
 
 - `npm run web` — local dev server
-- `npm run build:web` — static export to `dist/` with basepath fix applied
-- `npm run deploy:web` — build then push `dist/` to `gh-pages` branch (requires `gh-pages` CLI: `npm i -D gh-pages`)
+- `npm run build:web` — static export to `dist/`
+- `npm run deploy:web` — deploy `dist/` to `gh-pages` branch via `scripts/deploy.sh`
 
-`dist/` is gitignored by convention — never commit it; always rebuild before deploying.
+`dist/` is gitignored — never commit it; always rebuild before deploying.
 
 ## Common pitfalls
 
-- **Buttons non-clickable on gh-pages** → see Web deployment section above. Don't waste time on overlay / z-index debugging; the JS bundle isn't loading.
+- **Buttons non-clickable on gh-pages** → wrong `experiments.basePath` instead of `experiments.baseUrl`. Don't waste time on overlay / z-index debugging; the JS bundle isn't loading.
+- **`/werewolves/reveal` shows "Unmatched Route"** → missing `dist/404.html` copy of `index.html`. SPA fallback needed for deep links.
+- **`_expo/` assets return 404** → missing `.nojekyll` file in deploy.
 - **Body `overflow: hidden` removed** from `src/global.css` in commit `7b2ae80`. Small phone landscape may scroll; intentional trade-off vs. Tailwind removal.
 - **`PointerEvent` cleanup leak** in `app/_layout.tsx`: cleanup restores `root.style.touchAction` but `body.style.touchAction` keeps the modified value. Cosmetic only.

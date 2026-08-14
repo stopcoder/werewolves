@@ -39,7 +39,7 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "basePath": "/werewolves"
+      "baseUrl": "/werewolves"
     }
   }
 }
